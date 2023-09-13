@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scatter Plot Charts</title>
+    <style>
+        circle {
+            opacity: 0.6;
+        }
+
+        ellipse {
+            fill: cornflowerblue;
+            opacity: 0.6;
+        }
+
+        text {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+        }
+
+        .axis-line {
+            stroke: black;
+            stroke-width: 1;
+        }
+
+        .tick-mark {
+            stroke: darkgray;
+            stroke-width: 1.5;
+        }
+
+        .tick-label {
+            font-size: 14px;
+            font-weight: bold;
+            fill: darkgray;
+        }
+
+    </style>
+</head>
+<body>
+
+
+<div style="max-width:500px; word-wrap:break-word;">
+    <svg id="scatterplot_1" width="600" height="550"></svg>
+    <h1>Visualization 2</h1>
+    <svg id="scatterplot_2" width="600" height="550"></svg>
+    <h1>Visualization 2b</h1>
+    <p width="500"> I avoided ellipses and directly showed the pearson coefficient. We can directly see the correlation from the graph and hence rotating the ellipses to show that is redundant. To get exact value, we can directly show it on the graph.</p>
+    <svg id="scatterplot_2b" width="600" height="550"></svg>
+    <h1>Visualization 3</h1>
+    <svg id="scatterplot_3" width="600" height="550"></svg>
+</div>
+
+
+
+
+<script>
+    function createLabel(svg, content, x, y, rotation = 0) {
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        label.setAttribute("x", x);
+        label.setAttribute("y", y);
+        label.setAttribute("font-size", "16px");
+        label.setAttribute("font-weight", "bold");
+        if(rotation) label.setAttribute("transform", `rotate(${rotation}, ${x}, ${y})`);
+        label.textContent = content;
+        svg.appendChild(label);
+    }
+
+    function createXAxis(svg) {
+        const xAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        xAxis.setAttribute("x1", "50");
+        xAxis.setAttribute("y1", "500");
+        xAxis.setAttribute("x2", "550");
+        xAxis.setAttribute("y2", "500");
+        xAxis.setAttribute("class", "axis-line");
+        svg.appendChild(xAxis);
+    }
+
+    function createYAxis(svg) {
+        const yAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        yAxis.setAttribute("x1", "50");
+        yAxis.setAttribute("y1", "500");
+        yAxis.setAttribute("x2", "50");
+        yAxis.setAttribute("y2", "20");
+        yAxis.setAttribute("class", "axis-line");
+        svg.appendChild(yAxis);
+    }
+    function addTickMarks(svg, minX, maxX, minY, maxY) {
+        const xAxisLength = 500;
+        const yAxisLength = 480;
+        const numTicks = 5;
+        const tickLength = 5;
+        const xInterval = (maxX - minX) / numTicks;
+        const yInterval = (maxY - minY) / numTicks;
+
+        // X-axis ticks and labels
+        for (let i = 1; i <= numTicks; i++) {
+            const xValue = minX + i * xInterval;
+            const xPos = 50 + (xValue - minX) / (maxX - minX) * xAxisLength;
+
+            const xTick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            xTick.setAttribute("x1", xPos.toString());
+            xTick.setAttribute("y1", "500");
+            xTick.setAttribute("x2", xPos.toString());
+            xTick.setAttribute("y2", (500 + tickLength).toString());
+            xTick.setAttribute("class", "tick-mark");
+            svg.appendChild(xTick);
+
+            const xLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            xLabel.setAttribute("x", xPos.toString());
+            xLabel.setAttribute("y", (495 + tickLength + 15).toString());
+            xLabel.setAttribute("text-anchor", "middle");
+            xLabel.setAttribute("font-size", "8px");
+            xLabel.setAttribute("fill", "gray");
+            xLabel.textContent = xValue.toFixed(2);
+            svg.appendChild(xLabel);
+        }
+
+        // Y-axis ticks and labels
+        for (let i = 1; i <= numTicks; i++) {
+            const yValue = minY + i * yInterval;
+            const yPos = 500 - (yValue - minY) / (maxY - minY) * yAxisLength;
+
+            const yTick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            yTick.setAttribute("x1", "50");
+            yTick.setAttribute("y1", yPos.toString());
+            yTick.setAttribute("x2", (50 - tickLength).toString());
+            yTick.setAttribute("y2", yPos.toString());
+            yTick.setAttribute("class", "tick-mark");
+            svg.appendChild(yTick);
+
+            const yLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            yLabel.setAttribute("x", (55 - tickLength - 5).toString());
+            yLabel.setAttribute("y", yPos.toString());
+            yLabel.setAttribute("text-anchor", "end");
+            yLabel.setAttribute("alignment-baseline", "middle");
+            yLabel.setAttribute("font-size", "8px");
+            yLabel.setAttribute("fill", "gray");
+            yLabel.textContent = yValue.toFixed(2);
+            svg.appendChild(yLabel);
+        }
+    }
+
+    function createScatterPlot1(id, time, lat, latu, xaxisname, yaxisname, fillcolor) {
+        const maxY = Math.max(...lat);
+        const minY = Math.min(...lat);
+        const minX = Math.min(...time);
+        const maxX = Math.max(...time);
+        const maxUncertainty = Math.max(...latu);
+        const svg = document.getElementById(id);
+
+        // Y-Axis
+        createYAxis(svg)
+
+        // X-Axis
+        createXAxis(svg)
+        addTickMarks(svg, minX, maxX, minY, maxY);
+        // Y-Axis label (rotated)
+        createLabel(svg, yaxisname, 10, 230, -90)
+
+        // X-Axis label
+        createLabel(svg, xaxisname, 270, 540)
+
+        // Create scatterplot circles
+        for (let i = 0; i < time.length; i++) {
+            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            const cx = 50 + (time[i] - minX) / (maxX - minX) * 500;
+            const cy = 500 - ((lat[i] - minY) / (maxY - minY) * 480);
+            const r = (latu[i] / maxUncertainty) * 10;
+
+            circle.setAttribute("cx", cx);
+            circle.setAttribute("cy", cy);
+            circle.setAttribute("r", r);
+            circle.setAttribute("fill", fillcolor);
+            svg.appendChild(circle);
+        }
+    }
+
+    function computePearsonCoefficient(x, y) {
+        let n = x.length;
+        let sumX = 0;
+        let sumY = 0;
+        let sumXY = 0;
+        let sumXX = 0;
+        let sumYY = 0;
+        for (let i = 0; i < n; i++) {
+            sumX += x[i];
+            sumY += y[i];
+            sumXY += x[i] * y[i];
+            sumXX += x[i] * x[i];
+            sumYY += y[i] * y[i];
+        }
+        return (n * sumXY - sumX * sumY) / Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
+    }
+    function getColorBasedOnCorrelation(correlation) {
+        if (correlation < 0) {
+            return 'lightcoral';  // Cooler temperatures
+        } else {
+            return 'steelblue';  // Medium temperatures
+        }
+    }
+    function createScatterPlot2(lat, loat, latu, loatu) {
+        const svg = document.getElementById("scatterplot_2");
+
+        const maxX = Math.max(...lat);
+        const minX = Math.min(...lat);
+        const maxY = Math.max(...loat);
+        const minY = Math.min(...loat);
+        const maxlatu = Math.max(...latu);
+        const maxloatu = Math.max(...loatu);
+        const maxu = Math.max(maxloatu, maxlatu);
+
+        const correlation = computePearsonCoefficient(lat, loat);
+        const rotationAngle = Math.atan(correlation) * (180 / Math.PI);
+
+        // Y-Axis
+        createYAxis(svg)
+
+        // X-Axis
+        createXAxis(svg)
+        addTickMarks(svg, minX, maxX, minY, maxY);
+        // Y-Axis label (rotated)
+        createLabel(svg, "LOAT", 10, 230, -90)
+
+        // X-Axis label
+        createLabel(svg, "LAT", 270, 540)
+
+
+        // Create scatterplot ellipses
+        for (let i = 0; i < lat.length; i++) {
+            const ellipse = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+            const cx = 50 + (lat[i] - minX) / (maxX - minX) * 500;
+            const cy = 500 - ((loat[i] - minY) / (maxY - minY) * 480);
+            const rx = 10*latu[i]/maxu;
+            const ry = 10*loatu[i]/maxu;
+
+            ellipse.setAttribute("cx", cx);
+            ellipse.setAttribute("cy", cy);
+            ellipse.setAttribute("rx", rx);
+            ellipse.setAttribute("ry", ry);
+            ellipse.setAttribute("transform", `rotate(${rotationAngle}, ${cx}, ${cy})`);
+
+            svg.appendChild(ellipse);
+        }
+    }
+
+    function createScatterPlot2b(lat, loat, latu, loatu) {
+        const svg = document.getElementById("scatterplot_2b");
+
+        const maxX = Math.max(...lat);
+        const minX = Math.min(...lat);
+        const maxY = Math.max(...loat);
+        const minY = Math.min(...loat);
+        const maxlatu = Math.max(...latu);
+        const maxloatu = Math.max(...loatu);
+        const maxu = Math.max(maxloatu, maxlatu);
+
+        // Display Pearson coefficient
+        const correlation = computePearsonCoefficient(lat, loat);
+        const correlationText = `Pearson Coefficient: ${correlation.toFixed(2)}`;
+        createLabel(svg, correlationText, "270", "15");
+
+        // Y-Axis
+        createYAxis(svg)
+
+        // X-Axis
+        createXAxis(svg)
+        addTickMarks(svg, minX, maxX, minY, maxY);
+        // Y-Axis label (rotated)
+        createLabel(svg, "LOAT", 10, 230, -90)
+
+        // X-Axis label
+        createLabel(svg, "LAT", 270, 540)
+
+
+        // Create scatterplot ellipses
+        for (let i = 0; i < lat.length; i++) {
+            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            const cx = 50 + (lat[i] - minX) / (maxX - minX) * 500;
+            const cy = 500 - ((loat[i] - minY) / (maxY - minY) * 480);
+            const r = (Math.max(latu[i], loatu[i]) / maxu) * 10;
+
+            circle.setAttribute("cx", cx);
+            circle.setAttribute("cy", cy);
+            circle.setAttribute("r", r);
+            circle.setAttribute("fill", "cornflowerblue")
+            svg.appendChild(circle);
+        }
+    }
+
+    // Fetch data and call the function to create scatterplot
+    fetch('/mnt/data/GlobalTemperatures.json')
+        .then(response => response.json())
+        .then(data => {
+            const time = data.map(d => d.time);
+            const lat = data.map(d => d.LAT);
+            const latu = data.map(d => d.LATU);
+            const loat = data.map(d => d.LOAT);
+            const loatu = data.map(d => d.LOATU);
+            createScatterPlot1("scatterplot_1", time, lat, latu, "time", "LAT", "cornflowerblue");
+            createScatterPlot2(lat, loat, latu, loatu);
+            createScatterPlot2b(lat, loat, latu, loatu);
+            createScatterPlot1("scatterplot_3", time, lat, latu, "time", "LAT", "cornflowerblue");
+            createScatterPlot1("scatterplot_3", time, loat, loatu, "time", "LAT/LOAT", "lightcoral");
+        });
+
+</script>
+</body>
+</html>
